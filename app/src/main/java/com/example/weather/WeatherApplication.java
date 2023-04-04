@@ -2,6 +2,7 @@ package com.example.weather;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -25,7 +26,7 @@ public class WeatherApplication extends Application {
     private static final int NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors();
     private static final int KEEP_ALIVE_TIME = 1;
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS;
-    private final BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue();
+    private final BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>();
 
     public ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
             NUMBER_OF_CORES,
@@ -38,5 +39,6 @@ public class WeatherApplication extends Application {
     public void onCreate() {
         super.onCreate();
         instance = this;
+        startService(new Intent(this, ForegroundUpdateCatService.class));
     }
 }

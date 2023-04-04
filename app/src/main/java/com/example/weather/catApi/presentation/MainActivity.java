@@ -22,10 +22,6 @@ import com.example.weather.databinding.ActivityMainBinding;
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
-
-    public static final String CAT_FILE_NAME = "AnyCatImage";
-    public static final String SP_NAME_PREF = "CatImagePref";
-    public static final String SP_NAME_KEY = "CatImageKey";
     private ActivityMainBinding binding;
 
     @Override
@@ -34,13 +30,10 @@ public class MainActivity extends AppCompatActivity {
         SplashScreen.installSplashScreen(this);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-//        startService(new Intent(this, MyService.class));
         mainState(getCurrentImage());
         binding.buttonGetLink.setOnClickListener(v -> {
             loadingState();
             setNewImageCat();
-//            stopService(new Intent(this, MyService.class));
         });
     }
 
