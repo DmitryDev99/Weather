@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name=".WeatherApplication"
@@ -14,10 +15,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StartSplash"
         tools:targetApi="31">
+
         <activity
-            android:theme="@style/Theme.Weather"
             android:name=".MainActivity2"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.Weather" />
         <activity
             android:name=".catApi.presentation.MainActivity"
             android:exported="true">
@@ -27,6 +29,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".MyService"
+            android:enabled="true"
+            android:exported="true"/>
     </application>
 
 </manifest>

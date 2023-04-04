@@ -1,7 +1,6 @@
 package com.example.weather.catApi.presentation;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -12,25 +11,21 @@ import androidx.core.splashscreen.SplashScreen;
 
 import com.example.weather.R;
 import com.example.weather.WeatherApplication;
-import com.example.weather.catApi.data.dataSource.CatImageRemoteDataSourceImpl;
+import com.example.weather.catApi.data.dataSource.CatLocalDataSourcesImpl;
 import com.example.weather.catApi.data.dataSource.CatRemoteDataSourceImpl;
-import com.example.weather.catApi.data.entity.CatResponse;
-import com.example.weather.catApi.domain.CatImageRemoteDataSource;
-import com.example.weather.catApi.domain.CatRemoteDataSource;
+import com.example.weather.catApi.domain.useCase.GetCachedImageUseCase;
+import com.example.weather.catApi.domain.useCase.LoadNewCatUseCase;
+import com.example.weather.core.files.FileUtils;
 import com.example.weather.core.newtwork.callbacks.RequestFileListener;
-import com.example.weather.core.newtwork.callbacks.RequestListener;
 import com.example.weather.databinding.ActivityMainBinding;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String CAT_FILE_NAME = "AnyCatImage";
-    private static final String SP_NAME_PREF = "CatImagePref";
-    private static final String SP_NAME_KEY = "CatImageKey";
-    private WeatherApplication app;
+    public static final String CAT_FILE_NAME = "AnyCatImage";
+    public static final String SP_NAME_PREF = "CatImagePref";
+    public static final String SP_NAME_KEY = "CatImageKey";
     private ActivityMainBinding binding;
 
     @Override
@@ -39,58 +34,44 @@ public class MainActivity extends AppCompatActivity {
         SplashScreen.installSplashScreen(this);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        app = (WeatherApplication) this.getApplication();
+
+//        startService(new Intent(this, MyService.class));
         mainState(getCurrentImage());
         binding.buttonGetLink.setOnClickListener(v -> {
             loadingState();
             setNewImageCat();
+//            stopService(new Intent(this, MyService.class));
         });
     }
 
     private void setNewImageCat() {
-        CatRemoteDataSource catDS = new CatRemoteDataSourceImpl(app.mainIOPool);
-        catDS.getCatLink(
-                app.mainThreadHandler, new RequestListener<CatResponse[]>() {
-                    @Override
-                    public void onResponse(CatResponse[] result) {
-                        String urlNewImage = result[0].getUrl();
-                        loadCatImage(urlNewImage);
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        mainState(getCurrentImage());
-                        showToast(getString(R.string.default_error_msg));
-                    }
-                }
+        LoadNewCatUseCase newCatUseCase = new LoadNewCatUseCase(
+                new CatRemoteDataSourceImpl(WeatherApplication.get().mainIOPool)
         );
-    }
-
-    @Nullable
-    private Bitmap getCurrentImage() {
-        String fileName = getSharedPreferences(SP_NAME_PREF, MODE_PRIVATE).getString(SP_NAME_KEY, "");
-        File tmpFile = new File(this.getFilesDir(), fileName);
-        if (tmpFile.exists()) {
-            return BitmapFactory.decodeFile(tmpFile.getAbsolutePath());
-        }
-        return null;
-    }
-
-    private void loadCatImage(@NotNull String url) {
-        CatImageRemoteDataSource catDS = new CatImageRemoteDataSourceImpl(url, app.mainIOPool);
-        catDS.getImageCat(this.getFilesDir(), CAT_FILE_NAME, app.mainThreadHandler, new RequestFileListener() {
+        newCatUseCase.invoke(WeatherApplication.get().mainThreadHandler, new RequestFileListener() {
             @Override
             public void onResponse(File file) {
-                Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
-                mainState(bmp);
-                getSharedPreferences(SP_NAME_PREF, MODE_PRIVATE).edit().putString(SP_NAME_KEY, file.getName()).apply();
+                mainState(FileUtils.fileToBitMap(file));
             }
+
             @Override
             public void onError(Exception e) {
                 mainState(getCurrentImage());
                 showToast(getString(R.string.default_error_msg));
             }
         });
+    }
+
+    @Nullable
+    private Bitmap getCurrentImage() {
+        GetCachedImageUseCase cachedCatUC = new GetCachedImageUseCase(
+                new CatLocalDataSourcesImpl()
+        );
+        File tmpFile = cachedCatUC.invoke();
+        if (tmpFile != null) {
+            return FileUtils.fileToBitMap(tmpFile);
+        }
+        return null;
     }
 
     private void loadingState() {

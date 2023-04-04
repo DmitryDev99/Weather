@@ -22,13 +22,30 @@ public abstract class NetworkProtocol {
     }
 
     public String syncGet() throws IOException {
-        URL url = new URL(baseUrl);
+        return syncGet(baseUrl);
+    }
+
+    public String syncGet(@NotNull String urlSource) throws IOException {
+        URL url = new URL(urlSource);
         HttpURLConnection connection = createConnection(url);
         return readResponse(connection);
     }
 
-    public File syncGetFile(@NotNull File fileDir, @NotNull String fileName, ProgressDownloadListener listener) throws IOException {
-        URL url = new URL(baseUrl);
+    public File syncGetFile(
+            @NotNull File fileDir,
+            @NotNull String fileName,
+            ProgressDownloadListener listener
+    ) throws IOException {
+        return syncGetFile(baseUrl, fileDir, fileName, listener);
+    }
+
+    public File syncGetFile(
+            @NotNull String urlSource,
+            @NotNull File fileDir,
+            @NotNull String fileName,
+            ProgressDownloadListener listener
+    ) throws IOException {
+        URL url = new URL(urlSource);
         HttpURLConnection connection = createConnection(url);
         return writeResponseToFile(fileDir, fileName, connection, listener);
     }

@@ -3,4 +3,6 @@
     <string name="main_screen_get_image_cat">Получить картинку кота</string>
     <string name="main_screen_refresh_image_cat">Обновить картинку кота</string>
     <string name="default_error_msg">Сервис временно не доступен</string>
+
+    <string name="test_foreground_service_text">Пример службы</string>
 </resources>
